@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starkzap — Interactive SDK Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a24;
+    --border: #2a2a3a; --border2: #3a3a50; --text: #e8e8f0; --muted: #6b6b85;
+    --accent: #ff6b35; --accent2: #ff9a5c; --blue: #5b8dee;
+    --green: #4cd97b; --purple: #a78bfa; --teal: #34d9c3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .hero { padding: 64px 48px 48px; border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-family: 'IBM Plex Mono', monospace; margin-bottom: 20px; }
+  .tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 1.4s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  h1 { font-size: clamp(32px, 5vw, 60px); font-weight: 800; line-height: 1.05; letter-spacing: -.02em; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .hero-sub { font-size: 16px; color: var(--muted); max-width: 560px; line-height: 1.7; margin-bottom: 32px; }
+  .install-bar { display: inline-flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+  .install-bar span { color: var(--muted); }
+  .install-bar code { color: var(--green); }
+  .copy-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 5px; cursor: pointer; font-family: 'Syne', sans-serif; transition: all .15s; }
+  .copy-btn:hover { border-color: var(--border2); color: var(--text); }
+  .counts { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 40px; padding-top: 40px; border-top: 1px solid var(--border); }
+  .count-n { font-size: 36px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .count-l { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .08em; }
+  .demo-wrap { max-width: 1100px; margin: 0 auto; padding: 48px 48px 0; }
+  .section-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 20px; }
+  .step-nav { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 20px; }
+  .step-btn { padding: 6px 14px; font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; }
+  .step-btn:hover { border-color: var(--border2); color: var(--text); }
+  .step-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+  @media(max-width:700px){ .split { grid-template-columns: 1fr; } }
+  .panel-head { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+  .dots { display: flex; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .d-r { background: #ff5f56; } .d-y { background: #ffbd2e; } .d-g { background: #27c93f; }
+  .code-body { background: var(--surface); padding: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.75; color: #9da5b4; min-height: 360px; overflow-x: auto; }
+  .kw{color:#c678dd} .fn{color:#61afef} .str{color:#98c379} .cm{color:#5c6370;font-style:italic} .num{color:#d19a66} .prop{color:#e06c75}
+  .ui-body { background: var(--surface2); padding: 20px; min-height: 360px; }
+  .sim-note { font-size: 10px; color: var(--muted); text-align: right; margin-bottom: 12px; font-family: 'IBM Plex Mono', monospace; }
+  .ui-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .ui-card.fi { animation: fadeIn .35s ease forwards; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .ui-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .ui-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .ui-key { color: var(--muted); }
+  .ui-val { color: var(--text); font-weight: 600; font-size: 13px; }
+  .card-title { font-size: 10px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: .08em; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: .04em; text-transform: uppercase; }
+  .b-green{background:rgba(76,217,123,.12);color:var(--green)}
+  .b-blue{background:rgba(91,141,238,.12);color:var(--blue)}
+  .b-purple{background:rgba(167,139,250,.12);color:var(--purple)}
+  .b-teal{background:rgba(52,217,195,.12);color:var(--teal)}
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .pill { font-size: 11px; padding: 4px 10px; border: 1px solid var(--border2); border-radius: 20px; color: var(--muted); }
+  .progress-bar { height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; margin: 10px 0; }
+  .progress-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 1s ease; width: 0%; }
+  .hidden-val { font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: var(--border2); letter-spacing: 3px; }
+  .tx { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .footer { max-width: 1100px; margin: 48px auto 0; padding: 40px 48px 64px; border-top: 1px solid var(--border); display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .cta-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all .15s; }
+  .cta-p { background: var(--accent); color: #fff; }
+  .cta-p:hover { background: var(--accent2); }
+  .cta-s { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .cta-s:hover { border-color: var(--border2); color: var(--text); }
+  .footer-note { font-size: 12px; color: var(--muted); }
+  @media(max-width:600px){ .hero,.demo-wrap,.footer{padding-left:20px;padding-right:20px} }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="tag">Starkzap SDK · Interactive Demo</div>
+  <h1>You don't need months<br>to add DeFi to your app<br><span>anymore.</span></h1>
+  <p class="hero-sub">One TypeScript SDK. Wallets, gasless transactions, Bitcoin staking, swaps, DCA, lending, bridging, and confidential transfers — all through a single <code style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--green)">connectWallet()</code>.</p>
+  <div class="install-bar">
+    <span>$</span>
+    <code>npm install starkzap</code>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install starkzap');this.textContent='copied ✓';setTimeout(()=>this.textContent='copy',1600)">copy</button>
+  </div>
+  <div class="counts">
+    <div><div class="count-n">8</div><div class="count-l">modules</div></div>
+    <div><div class="count-n">1</div><div class="count-l">SDK</div></div>
+    <div><div class="count-n">60+</div><div class="count-l">projects shipped</div></div>
+    <div><div class="count-n">$2M</div><div class="count-l">ecosystem funding</div></div>
+  </div>
+</div>
+
+<div class="demo-wrap">
+  <div class="section-label">// click a module to see the real API</div>
+  <div class="step-nav" id="step-nav"></div>
+  <div class="split">
+    <div>
+      <div class="panel-head">
+        <div class="dots"><span class="dot d-r"></span><span class="dot d-y"></span><span class="dot d-g"></span></div>
+        <span id="file-name">connect.ts</span>
+        <span></span>
+      </div>
+      <div class="code-body" id="code-panel"></div>
+    </div>
+    <div>
+      <div class="panel-head">
+        <span>result</span>
+        <span id="status-badge"></span>
+      </div>
+      <div class="ui-body" id="ui-panel"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <a class="cta-link cta-p" href="https://starkzap.io/docs" target="_blank">Read the docs ↗</a>
+  <a class="cta-link cta-s" href="https://github.com/keep-starknet-strange/starkzap" target="_blank">GitHub ↗</a>
+  <span class="footer-note">Built on Starknet · @web3dothan</span>
+</div>
+
+<script>
+const steps = [
+  {
+    label:"connect", file:"connect.ts",
+    status:'<span class="badge b-green">connected</span>',
+    code:`<span class="cm">// npm install starkzap</span>
+
+<span class="kw">import</span> { StarkZap } <span class="kw">from</span> <span class="str">"starkzap"</span>;
+
+<span class="kw">const</span> sdk = <span class="kw">new</span> <span class="fn">StarkZap</span>({
+  network: <span class="str">"mainnet"</span>,
+});
+
+<span class="cm">// one call. wallet is live.</span>
+<span class="kw">const</span> wallet = <span class="kw">await</span> sdk.<span class="fn">connectWallet</span>({
+  account: {
+    signer,
+    accountClass: ArgentPreset,
+  },
+});
+
+<span class="cm">// social login, gasless UX, full self-custody.</span>
+<span class="cm">// no seed phrases. no gas tokens needed.</span>`,
+    ui:()=>`<div class="sim-note">simulated output</div>
+    <div class="ui-card fi"><div class="card-title">wallet</div>
+      <div class="ui-row"><span class="ui-key">address</span><span class="ui-val">0x04a3…f9c2</span></div>
+      <div class="ui-row"><span class="ui-key">network</span><span class="ui-val">Starknet mainnet</span></div>
+      <div class="ui-row"><span class="ui-key">gas</span><span class="badge b-teal">sponsored</span></div>
+      <div class="ui-row"><span class="ui-key">self-custody</span><span class="badge b-green">preserved</span></div>
+    </div>
+    <div class="ui-card fi" style="animation-delay:.1s"><div class="card-title">sign-in options (Privy + Cartridge)</div>
+      <div class="pills"><span class="pill">email</span><span class="pill">google</span><span class="pill">apple</span><span class="pill">passkey</span><span class="pill">metamask</span><span class="pill">phantom</span><span class="pill">discord</span><span class="pill">twitter</span></div>
+    </div>`
+  },
+  {
+    label:"swap", file:"swap.ts",
+    status:'<span class="badge b-green">confirmed</span>',
+    code:`<span class="kw">import</span> { AvnuSwapProvider,
+  getPresets, Amount } <span class="kw">from</span> <span class="str">"starkzap"</span>;
+
+wallet.<span class="fn">registerSwapProvider</span>(
+  <span class="kw">new</span> <span class="fn">AvnuSwapProvider</span>()
+);
+
+<span class="kw">const</span> { STRK, USDC } = <span class="fn">getPresets</span>(
+  wallet.<span class="fn">getChainId</span>()
+);
+
+<span class="cm">// get quote before executing</span>
+<span class="kw">const</span> quote = <span class="kw">await</span> wallet.<span class="fn">getQuote</span>({
+  tokenIn:  STRK,
+  tokenOut: USDC,
+  amountIn: Amount.<span class="fn">parse</span>(<span class="str">"100"</span>, STRK),
+});
+<span class="cm">// quote.amountOutBase  → bigint in USDC base units</span>
+<span class="cm">// quote.priceImpactBps → 12n = 0.12%</span>
+<span class="cm">// quote.provider       → "avnu" | "ekubo"</span>
+
+<span class="kw">const</span> tx = <span class="kw">await</span> wallet.<span class="fn">swap</span>({
+  tokenIn:     STRK,
+  tokenOut:    USDC,
+  amountIn:    Amount.<span class="fn">parse</span>(<span class="str">"100"</span>, STRK),
+  slippageBps: <span class="num">50n</span>,
+});
+<span class="kw">await</span> tx.<span class="fn">wait</span>();`,
+    ui:()=>`<div class="sim-note">simulated output</div>
+    <div class="ui-card fi"><div class="card-title">quote preview · AVNU</div>
+      <div class="ui-row"><span class="ui-key">you pay</span><span class="ui-val">100 STRK</span></div>
+      <div class="ui-row"><span class="ui-key">you get</span><span class="ui-val">~47.82 USDC</span></div>
+      <div class="ui-row"><span class="ui-key">price impact</span><span class="ui-val">0.12%</span></div>
+      <div class="ui-row"><span class="ui-key">max slippage</span><span class="ui-val">0.5%</span></div>
+      <div class="ui-row"><span class="ui-key">route</span><span class="badge b-blue">AVNU aggregator</span></div>
+    </div>
+    <div class="ui-card fi" style="animation-delay:.1s"><div class="card-title">transaction</div>
+      <div class="ui-row"><span class="ui-key">status</span><span class="badge b-green">confirmed</span></div>
+      <div class="ui-row"><span class="ui-key">gas</span><span class="badge b-teal">sponsored</span></div>
+      <div class="tx">0x7b4f…c801 · 1 block ago</div>
+    </div>`
+  },
+  {
+    label:"dca", file:"dca.ts",
+    status:'<span class="badge b-purple">active</span>',
+    code:`<span class="kw">import</span> { AvnuDcaProvider } <span class="kw">from</span> <span class="str">"starkzap"</span>;
+
+wallet.<span class="fn">dca</span>().<span class="fn">registerProvider</span>(
+  <span class="kw">new</span> <span class="fn">AvnuDcaProvider</span>()
+);
+
+<span class="cm">// preview one cycle at current prices</span>
+<span class="kw">const</span> preview = <span class="kw">await</span> wallet.<span class="fn">dca</span>()
+  .<span class="fn">previewCycle</span>({
+    tokenIn:          USDC,
+    tokenOut:         ETH,
+    amountInPerCycle: Amount.<span class="fn">parse</span>(<span class="str">"50"</span>, USDC),
+  });
+
+<span class="cm">// create weekly DCA — protocol-level scheduling</span>
+<span class="cm">// no cron jobs. no custom logic.</span>
+<span class="kw">const</span> tx = <span class="kw">await</span> wallet.<span class="fn">dca</span>().<span class="fn">create</span>({
+  tokenIn:          USDC,
+  tokenOut:         ETH,
+  amountInPerCycle: Amount.<span class="fn">parse</span>(<span class="str">"50"</span>, USDC),
+  frequency:        <span class="str">"P1W"</span>,
+});
+
+<span class="cm">// AVNU = discrete cycles (supports price guards)</span>
+<span class="cm">// Ekubo TWAMM = continuous streaming</span>`,
+    ui:()=>`<div class="sim-note">simulated output</div>
+    <div class="ui-card fi"><div class="card-title">active DCA order · AVNU</div>
+      <div class="ui-row"><span class="ui-key">buying</span><span class="ui-val">ETH</span></div>
+      <div class="ui-row"><span class="ui-key">spending</span><span class="ui-val">50 USDC / week</span></div>
+      <div class="ui-row"><span class="ui-key">next cycle</span><span class="ui-val">in 6 days</span></div>
+      <div class="ui-row"><span class="ui-key">scheduling</span><span class="ui-val">protocol-level</span></div>
+    </div>
+    <div class="ui-card fi" style="animation-delay:.1s"><div class="card-title">cycle preview</div>
+      <div class="ui-row"><span class="ui-key">each $50 buys ~</span><span class="ui-val">0.01382 ETH</span></div>
+      <div class="ui-row"><span class="ui-key">alt: continuous</span><span class="badge b-purple">Ekubo TWAMM</span></div>
+    </div>`
+  },
+  {
+    label:"lend", file:"lending.ts",
+    status:'<span class="badge b-green">healthy</span>',
+    code:`<span class="cm">// Vesu registers automatically — no config needed</span>
+
+<span class="kw">const</span> { USDC, ETH } = <span class="fn">getPresets</span>(
+  wallet.<span class="fn">getChainId</span>()
+);
+
+<span class="cm">// deposit idle stables to earn yield</span>
+<span class="kw">await</span> wallet.<span class="fn">lending</span>().<span class="fn">deposit</span>({
+  token:  USDC,
+  amount: Amount.<span class="fn">parse</span>(<span class="str">"500"</span>, USDC),
+});
+
+<span class="cm">// borrow against ETH collateral</span>
+<span class="kw">await</span> wallet.<span class="fn">lending</span>().<span class="fn">borrow</span>({
+  collateralToken: ETH,
+  debtToken:       USDC,
+  amount:          Amount.<span class="fn">parse</span>(<span class="str">"300"</span>, USDC),
+});
+
+<span class="cm">// check health — false = liquidation risk</span>
+<span class="kw">const</span> health = <span class="kw">await</span> wallet
+  .<span class="fn">lending</span>().<span class="fn">getHealth</span>({
+    collateralToken: ETH,
+    debtToken:       USDC,
+  });
+<span class="cm">// health.isCollateralized, .collateralValue, .debtValue</span>`,
+    ui:()=>`<div class="sim-note">simulated output</div>
+    <div class="ui-card fi"><div class="card-title">position · Vesu</div>
+      <div class="ui-row"><span class="ui-key">deposited</span><span class="ui-val">500 USDC</span></div>
+      <div class="ui-row"><span class="ui-key">APY</span><span class="ui-val" style="color:var(--green)">4.7%</span></div>
+      <div class="ui-row"><span class="ui-key">borrowed</span><span class="ui-val">300 USDC</span></div>
+      <div class="ui-row"><span class="ui-key">collateral</span><span class="ui-val">0.22 ETH</span></div>
+    </div>
+    <div class="ui-card fi" style="animation-delay:.1s"><div class="card-title">health check</div>
+      <div class="ui-row"><span class="ui-key">collateral value</span><span class="ui-val">$847</span></div>
+      <div class="ui-row"><span class="ui-key">debt value</span><span class="ui-val">$300</span></div>
+      <div class="ui-row"><span class="ui-key">is collateralized</span><span class="badge b-green">true</span></div>
+    </div>`
+  },
+  {
+    label:"bridge", file:"bridge.ts",
+    status:'<span class="badge b-blue">bridging</span>',
+    code:`<span class="kw">import</span> { ConnectedEthereumWallet,
+  ExternalChain, fromAddress, Amount }
+  <span class="kw">from</span> <span class="str">"starkzap"</span>;
+
+<span class="kw">const</span> ethWallet = <span class="kw">await</span>
+  ConnectedEthereumWallet.<span class="fn">from</span>({
+    chain:    ExternalChain.ETHEREUM,
+    provider: window.ethereum,
+    address:  evmAddress,
+    chainId:  evmChainId,
+  }, wallet.<span class="fn">getChainId</span>());
+
+<span class="cm">// estimate fees before committing</span>
+<span class="kw">const</span> fees = <span class="kw">await</span> wallet
+  .<span class="fn">getDepositFeeEstimate</span>(
+    token, ethWallet,
+    { fastTransfer: <span class="kw">true</span> }
+  );
+
+<span class="cm">// bridge USDC Ethereum → Starknet via CCTP</span>
+<span class="kw">const</span> tx = <span class="kw">await</span> wallet.<span class="fn">deposit</span>(
+  <span class="fn">fromAddress</span>(wallet.address),
+  Amount.<span class="fn">parse</span>(<span class="str">"100"</span>, token.decimals, token.symbol),
+  token, ethWallet,
+  { fastTransfer: <span class="kw">true</span> }, <span class="cm">// ~20 min vs ~8 hrs</span>
+);`,
+    ui:()=>`<div class="sim-note">simulated output</div>
+    <div class="ui-card fi"><div class="card-title">bridge · CCTP fast path</div>
+      <div class="ui-row"><span class="ui-key">from</span><span class="ui-val">Ethereum</span></div>
+      <div class="ui-row"><span class="ui-key">to</span><span class="ui-val">Starknet mainnet</span></div>
+      <div class="ui-row"><span class="ui-key">amount</span><span class="ui-val">100 USDC</span></div>
+      <div class="ui-row"><span class="ui-key">est. time</span><span class="badge b-blue">~20 min</span></div>
+    </div>
+    <div class="ui-card fi" style="animation-delay:.1s"><div class="card-title">progress</div>
+      <div class="progress-bar"><div class="progress-fill" id="pbar"></div></div>
+      <div style="font-size:12px;color:var(--muted)" id="bridge-msg">initiating transfer…</div>
+    </div>`,
+    afterRender:()=>{
+      const msgs=['initiating transfer…','source tx confirmed','CCTP attestation…','minting on Starknet…','complete ✓'];
+      const vals=[0,25,55,80,100]; let i=0;
+      const go=()=>{
+        const bar=document.getElementById('pbar'), msg=document.getElementById('bridge-msg');
+        if(!bar||!msg||i>=vals.length)return;
+        bar.style.width=vals[i]+'%'; msg.textContent=msgs[i]; i++;
+        if(i<vals.length)setTimeout(go,800);
+      };
+      setTimeout(go,200);
+    }
+  },
+  {
+    label:"private", file:"confidential.ts",
+    status:'<span class="badge b-purple">private</span>',
+    code:`<span class="kw">import</span> { TongoConfidential }
+  <span class="kw">from</span> <span class="str">"starkzap"</span>;
+
+<span class="kw">const</span> confidential = <span class="kw">new</span> <span class="fn">TongoConfidential</span>({
+  privateKey:      tongoPrivateKey, <span class="cm">// separate from wallet key</span>
+  contractAddress: TONGO_CONTRACT,
+  provider:        wallet.<span class="fn">getProvider</span>(),
+});
+
+<span class="cm">// ZK proof generated client-side.</span>
+<span class="cm">// chain never sees the amount in plaintext.</span>
+
+<span class="kw">const</span> tx = <span class="kw">await</span> wallet.<span class="fn">tx</span>()
+  .<span class="fn">confidentialTransfer</span>(confidential, {
+    amount: Amount.<span class="fn">parse</span>(<span class="str">"50"</span>, USDC),
+    to:     recipient.<span class="prop">recipientId</span>, <span class="cm">// EC pubkey { x, y }</span>
+    sender: wallet.address,
+  })
+  .<span class="fn">send</span>();
+
+<span class="kw">await</span> tx.<span class="fn">wait</span>();
+<span class="cm">// on-chain amount: [encrypted]</span>`,
+    ui:()=>`<div class="sim-note">simulated output</div>
+    <div class="ui-card fi"><div class="card-title">confidential transfer · Tongo</div>
+      <div class="ui-row"><span class="ui-key">amount (on-chain)</span><span class="hidden-val">••••••</span></div>
+      <div class="ui-row"><span class="ui-key">recipient</span><span class="ui-val" style="font-family:'IBM Plex Mono',monospace;font-size:11px">{ x: 0xf3a…, y: 0x8d1… }</span></div>
+      <div class="ui-row"><span class="ui-key">proof</span><span class="badge b-purple">ZK · client-side</span></div>
+      <div class="ui-row"><span class="ui-key">status</span><span class="badge b-green">confirmed</span></div>
+    </div>
+    <div class="ui-card fi" style="animation-delay:.1s"><div class="card-title">encrypted balance</div>
+      <div class="ui-row"><span class="ui-key">active balance</span><span class="hidden-val">•••</span></div>
+      <div class="ui-row"><span class="ui-key">pending rollover</span><span class="hidden-val">•••</span></div>
+      <div class="tx" style="margin-top:8px">amounts hidden from all chain observers · powered by Tongo</div>
+    </div>`
+  }
+];
+
+function render(i){
+  const s=steps[i];
+  document.querySelectorAll('.step-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('file-name').textContent=s.file;
+  document.getElementById('code-panel').innerHTML=s.code;
+  document.getElementById('status-badge').innerHTML=s.status;
+  document.getElementById('ui-panel').innerHTML=s.ui();
+  if(s.afterRender)setTimeout(s.afterRender,100);
+}
+
+const nav=document.getElementById('step-nav');
+steps.forEach((s,i)=>{
+  const btn=document.createElement('button');
+  btn.className='step-btn'+(i===0?' active':'');
+  btn.textContent=s.label;
+  btn.onclick=()=>render(i);
+  nav.appendChild(btn);
+});
+render(0);
+</script>
+</body>
+</html>
